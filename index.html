@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f7f2">
+  <meta name="description" content="WP-2 memantau kapasitas sampah, kondisi udara, dan lokasi tempat sampah melalui sensor IoT.">
+  <meta property="og:title" content="WP-2 — Pantau lingkungan bersama">
+  <meta property="og:description" content="Lihat kondisi tempat sampah dan kualitas udara secara langsung.">
+  <meta property="og:type" content="website">
+  <title>WP-2 — Pantau lingkungan bersama</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="connect.css">
+  <script src="mtl.js" defer></script>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="WP-2 beranda">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 3c-5 6-9 10.1-9 16a9 9 0 0 0 18 0c0-5.9-4-10-9-16Zm-4.4 16.2a4.5 4.5 0 0 0 4.5 4.5" /></svg></span>
+        <span>WP<span class="brand-number">-2</span></span>
+      </a>
+      <div class="nav-label">MENU UTAMA</div>
+      <nav class="navigation" aria-label="Navigasi utama">
+        <a class="nav-item active" href="#overview"><span class="nav-icon">▦</span> Ringkasan</a>
+        <a class="nav-item" href="#sensor"><span class="nav-icon">⌁</span> Pemantauan sensor</a>
+        <a class="nav-item" href="#schedule"><span class="nav-icon">▤</span> Jadwal angkut <span class="nav-count" id="nav-count">1</span></a>
+        <a class="nav-item" href="#location"><span class="nav-icon">⌖</span> Lokasi tempat sampah</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="help-card">
+          <div class="help-icon">✳</div>
+          <strong>Langkah kecil,<br>lingkungan lebih baik.</strong>
+          <p>Informasi terbuka untuk lingkungan yang lebih sehat.</p>
+        </div>
+        <div class="profile">
+          <div class="avatar">W2</div>
+          <div><strong>WP-2</strong><small>Dashboard publik</small></div>
+          <span class="profile-more">···</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content" id="overview">
+      <header class="topbar">
+        <div class="breadcrumbs">Dashboard <span>/</span> <strong>Ringkasan</strong></div>
+        <div class="top-actions">
+          <span class="public-chip"><span></span> Informasi terbuka untuk semua</span>
+          <button class="connect-button" id="connect-button">Hubungkan sensor</button>
+          <button class="icon-button" id="refresh-button" aria-label="Segarkan data" title="Segarkan data">↻</button>
+          <div class="top-date" id="current-date"></div>
+        </div>
+      </header>
+
+      <section class="welcome-row">
+        <div>
+          <p class="eyebrow">WP-2 · PEMANTAUAN LINGKUNGAN</p>
+          <h1>Lingkungan bersih, <span>dimulai dari sini.</span></h1>
+          <p class="subheading">Lihat kabar tempat sampah dan udara di sekitar, dalam satu tempat.</p>
+        </div>
+        <button class="button button-dark" id="gps-button"><span>⌖</span> Aktifkan GPS</button>
+      </section>
+
+      <section class="alert-banner" id="alert-banner" aria-live="polite">
+        <div class="alert-symbol">✓</div>
+        <div class="alert-copy"><strong id="alert-title">Semua kondisi terkendali</strong><span id="alert-description">Belum ada indikasi tempat sampah penuh atau gas tinggi.</span></div>
+        <span class="alert-time" id="alert-time">Diperbarui sekarang</span>
+      </section>
+
+      <section class="stats-grid" id="sensor" aria-label="Data sensor">
+        <article class="stat-card fill-card">
+          <div class="card-heading"><span>Volume tempat sampah</span><span class="card-icon green-icon">▤</span></div>
+          <div class="stat-value"><strong id="fill-value">--</strong><span>%</span><span class="status-pill good" id="fill-status">Memuat</span></div>
+          <div class="bin-visual"><div class="bin-track"><div class="bin-level" id="bin-level"></div></div><div class="bin-scale"><span>Kosong</span><span>Penuh</span></div></div>
+          <p class="card-foot">HC-SR04 <span id="distance-label">• Menunggu data</span></p>
+        </article>
+
+        <article class="stat-card gas-card">
+          <div class="card-heading"><span>Indeks gas relatif</span><span class="card-icon orange-icon">◉</span></div>
+          <div class="stat-value"><strong id="gas-value">--</strong><span>/ 100</span><span class="status-pill good" id="gas-status">Memuat</span></div>
+          <div class="meter"><div class="meter-fill" id="gas-meter"></div></div>
+          <div class="gas-scale"><span>Normal</span><span>Perlu perhatian</span><span>Tinggi</span></div>
+          <p class="card-foot">MQ-135 <span id="gas-source">• Indikator relatif, bukan ppm</span></p>
+        </article>
+
+        <article class="stat-card">
+          <div class="card-heading"><span>Suhu lingkungan</span><span class="card-icon blue-icon">☼</span></div>
+          <div class="stat-value"><strong id="temperature-value">--</strong><span>°C</span></div>
+          <div class="mini-chart temperature-chart"><svg viewBox="0 0 220 45" preserveAspectRatio="none" aria-label="Grafik suhu"><path class="chart-area-blue" d="M0 36 C20 31 27 34 43 25 S68 30 82 20 S111 24 127 15 S154 20 170 12 S199 19 220 5 V45 H0Z"/><path class="chart-line-blue" d="M0 36 C20 31 27 34 43 25 S68 30 82 20 S111 24 127 15 S154 20 170 12 S199 19 220 5"/></svg></div>
+          <p class="card-foot">DHT-22 <span id="temperature-note">• Kondisi saat ini</span></p>
+        </article>
+
+        <article class="stat-card">
+          <div class="card-heading"><span>Kelembapan</span><span class="card-icon purple-icon">◌</span></div>
+          <div class="stat-value"><strong id="humidity-value">--</strong><span>%</span></div>
+          <div class="humidity-visual"><div class="humidity-wave" id="humidity-wave"></div></div>
+          <p class="card-foot">DHT-22 <span>• Kelembapan udara</span></p>
+        </article>
+      </section>
+
+      <div class="content-grid">
+        <section class="panel chart-panel">
+          <div class="panel-heading">
+            <div><h2>Tren kondisi sensor</h2><p>Perubahan pembacaan sepanjang waktu</p></div>
+            <span class="chart-range-label">Riwayat sesi</span>
+          </div>
+          <div class="chart-legend"><span><i class="legend-dot green-dot"></i> Volume sampah</span><span><i class="legend-dot orange-dot"></i> Indeks gas</span></div>
+          <div class="trend-chart">
+            <div class="y-labels"><span>100</span><span>75</span><span>50</span><span>25</span><span>0</span></div>
+            <div class="plot">
+              <div class="grid-lines"><i></i><i></i><i></i><i></i><i></i></div>
+              <svg id="trend-svg" viewBox="0 0 700 190" preserveAspectRatio="none" role="img" aria-label="Grafik tren volume dan indeks gas">
+                <defs><linearGradient id="greenFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#55a879" stop-opacity=".22"/><stop offset="1" stop-color="#55a879" stop-opacity="0"/></linearGradient></defs>
+                <path id="fill-area" fill="url(#greenFill)" d="M0 130 C60 120 75 112 130 115 S200 88 260 100 S340 77 390 89 S480 66 520 72 S620 45 700 48 V190 H0Z"/>
+                <path id="fill-line" class="trend-green" d="M0 130 C60 120 75 112 130 115 S200 88 260 100 S340 77 390 89 S480 66 520 72 S620 45 700 48"/>
+                <path id="gas-line" class="trend-orange" d="M0 157 C70 151 78 158 130 148 S200 158 260 143 S330 149 390 138 S460 150 520 130 S630 141 700 119"/>
+              </svg>
+              <div class="x-labels" id="x-labels"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel schedule-panel" id="schedule">
+          <div class="panel-heading">
+            <div><h2>Jadwal pengangkutan</h2><p>Rencana berdasarkan kondisi sensor</p></div>
+            <span class="schedule-icon">▤</span>
+          </div>
+          <div class="schedule-feature">
+            <div class="schedule-date"><span id="schedule-day">HARI INI</span><strong id="schedule-date-number">--</strong></div>
+            <div class="schedule-detail"><strong id="schedule-title">Pengecekan rutin</strong><span id="schedule-description">Jadwal akan menyesuaikan kondisi sensor.</span><span class="schedule-time" id="schedule-time">08.00 – 10.00</span></div>
+          </div>
+          <div class="schedule-list" id="schedule-list"><div class="schedule-row"><span class="schedule-dot"></span><div><strong>Pengangkutan rutin</strong><small>Menunggu data lokasi perangkat</small></div><span class="schedule-tag">Rutin</span></div></div>
+          <div class="schedule-note" id="schedule-note">Jadwal otomatis dibuat saat volume ≥ 85% atau indeks gas ≥ 70.</div>
+        </section>
+      </div>
+
+      <section class="panel location-panel" id="location">
+        <div class="location-info">
+          <div class="panel-heading"><div><h2>Lokasi perangkat</h2><p id="location-status">GPS belum diaktifkan</p></div><span class="location-icon">⌖</span></div>
+          <div class="location-coordinates" id="location-coordinates">Lokasi menunggu izin GPS</div>
+          <div class="location-meta"><span class="location-dot"></span><span id="location-updated">Aktifkan GPS untuk membagikan titik lokasi</span></div>
+          <a class="map-link disabled" id="map-link" href="#" target="_blank" rel="noopener">Buka di peta <span>↗</span></a>
+        </div>
+        <div class="map-preview" aria-label="Pratinjau peta lokasi">
+          <div class="map-grid"></div><div class="map-road road-one"></div><div class="map-road road-two"></div><div class="map-road road-three"></div>
+          <div class="map-block block-one"></div><div class="map-block block-two"></div><div class="map-block block-three"></div><div class="map-block block-four"></div>
+          <div class="map-pin" id="map-pin"><span>⌖</span></div>
+          <span class="map-caption" id="map-caption">Lokasi belum tersedia</span>
+        </div>
+      </section>
+
+      <footer class="footer"><span>© 2026 WP-2 · Informasi lingkungan terbuka untuk semua</span><span>Status data <i class="online-dot"></i> <strong id="connection-label">Mode demo</strong></span></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog class="connect-dialog" id="connect-dialog">
+    <form id="connect-form">
+      <div class="dialog-heading"><div><p class="eyebrow">INTEGRASI IOT</p><h2>Hubungkan perangkat</h2></div><button class="dialog-close" type="button" id="dialog-close" aria-label="Tutup">×</button></div>
+      <p class="dialog-intro">Masukkan endpoint REST yang mengembalikan data sensor dalam format JSON. Dashboard akan membaca data setiap 5 detik.</p>
+      <label for="api-url">URL endpoint API</label>
+      <input id="api-url" type="url" placeholder="https://server-anda.com/api/sensor" autocomplete="url" required>
+      <div class="payload-example"><strong>Format data yang didukung</strong><code>{"fillPct":72,"gasIndex":34,"temperatureC":29.4,"humidityPct":68,"distanceCm":28}</code><small>Alternatif volume: <code>distanceCm</code> + <code>binHeightCm</code>. Alternatif gas: <code>mq135Raw</code> (rentang ADC 0–1023). Lokasi opsional: <code>latitude</code> dan <code>longitude</code>.</small></div>
+      <p class="dialog-warning">API harus dapat diakses publik dan mengizinkan CORS dari domain website. Jangan masukkan token rahasia di website publik.</p>
+      <div class="dialog-actions"><button type="button" class="button button-light" id="demo-button">Gunakan mode demo</button><button type="submit" class="button button-dark">Simpan &amp; hubungkan</button></div>
+    </form>
+  </dialog>
+</body>
+</html>
